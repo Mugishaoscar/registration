@@ -1,0 +1,16 @@
+# NetBeans specific
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# Database files (optional, if you want each person to have their own db)
+*.db

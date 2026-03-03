@@ -435,16 +435,55 @@ public class MainDashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
-         String idStr = jTextField3.getText().trim();
-        String rawName = jTextField1.getText().trim();
-        String email = jTextField2.getText().trim();
-        String course = jComboBox1.getSelectedItem().toString();
-        String marksStr = jTextField3.getText().trim();
-                if (idStr.isEmpty() || rawName.isEmpty() || email.isEmpty() || marksStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "please enter all field of the user to delete");
+// 1. Ask for the Student ID
+    String idToUpdate = JOptionPane.showInputDialog(this, "Enter the Student ID you want to update:");
+    
+    // If user clicks cancel or leaves it blank, stop
+    if (idToUpdate == null || idToUpdate.trim().isEmpty()) {
+        return;
+    }
+
+    // 2. Ask for the New Marks
+    String newMarksStr = JOptionPane.showInputDialog(this, "Enter the new marks for Student ID " + idToUpdate + ":");
+    
+    if (newMarksStr == null || newMarksStr.trim().isEmpty()) {
+        return;
+    }
+
+    try {
+        // 3. Convert inputs to numbers
+        int id = Integer.parseInt(idToUpdate.trim());
+        int marks = Integer.parseInt(newMarksStr.trim());
+
+        // 4. Validate marks range
+        if (marks < 0 || marks > 100) {
+            JOptionPane.showMessageDialog(this, "Marks must be between 0 and 100!");
             return;
         }
+
+        // 5. Database Update
+        java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
+        String sql = "UPDATE students SET marks = ? WHERE id = ?";
+        java.sql.PreparedStatement pst = con.prepareStatement(sql);
+        
+        pst.setInt(1, marks);
+        pst.setInt(2, id);
+
+        int rowsAffected = pst.executeUpdate();
+
+        // 6. Check if the ID actually existed
+        if (rowsAffected > 0) {
+            JOptionPane.showMessageDialog(this, "Update Successful for Student ID: " + id);
+            loadStudents(); // Refresh the list to show new marks
+        } else {
+            JOptionPane.showMessageDialog(this, "Student ID " + id + " not found in database.");
+        }
+
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "Please enter valid numbers for ID and Marks!", "Input Error", JOptionPane.ERROR_MESSAGE);
+    } catch (java.sql.SQLException e) {
+        JOptionPane.showMessageDialog(this, "Database Error: " + e.getMessage());
+    }
         
     }//GEN-LAST:event_jButton2ActionPerformed
 
@@ -515,15 +554,42 @@ public class MainDashboard extends javax.swing.JFrame {
 
 // Helper method to keep code clean
     private void filterByStatus(String criteria) {
+// 1. Clear the old text and add a Header
+    jTextArea1.setText("ID\tName\tEmail\tCourse\tMarks\n");
+    jTextArea1.append("--------------------------------------------------------------------------\n");
+
     try {
         java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
         String sql = "SELECT * FROM students WHERE marks " + criteria;
-        // ... follow the same loop logic as loadStudents() to show filtered data ...
-    } catch (Exception e) { }
+        java.sql.PreparedStatement pst = con.prepareStatement(sql);
+        java.sql.ResultSet rs = pst.executeQuery();
+
+        boolean found = false;
+        // 2. Loop through the filtered results
+        while (rs.next()) {
+            found = true;
+            jTextArea1.append(rs.getInt("id") + "\t" +
+                               rs.getString("name") + "\t" +
+                               rs.getString("email") + "\t" +
+                               rs.getString("course") + "\t" +
+                               rs.getInt("marks") + "\n");
+        }
+        
+        if (!found) {
+            jTextArea1.append("\nNo students found matching this filter.");
+        }
+
+    } catch (Exception e) {
+        // If 'this' gives an error here, use 'null'
+        JOptionPane.showMessageDialog(null, "Filter Error: " + e.getMessage());
+    }
     }//GEN-LAST:event_jRadioButton1ActionPerformed
 
     private void jRadioButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton3ActionPerformed
         // TODO add your handling code here:
+        if (jRadioButton3.isSelected()) {
+        filterByStatus(">95");
+    }
     }//GEN-LAST:event_jRadioButton3ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -692,8 +758,8 @@ public class MainDashboard extends javax.swing.JFrame {
     private void jRadioButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton2ActionPerformed
         // TODO add your handling code here:
         // TODO add your handling code here:
-        if (jRadioButton1.isSelected()) {
-        filterByStatus(">= 50");
+        if (jRadioButton2.isSelected()) {
+        filterByStatus("< 50");
     }
     }//GEN-LAST:event_jRadioButton2ActionPerformed
 

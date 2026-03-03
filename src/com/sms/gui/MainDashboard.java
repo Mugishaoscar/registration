@@ -598,7 +598,25 @@ public class MainDashboard extends javax.swing.JFrame {
         jComboBox1.setSelectedIndex(0);
     }//GEN-LAST:event_jButton1ActionPerformed
     private void sortData(String columnName) {
-     
+    jTextArea1.setText("ID\tName\tEmail\tCourse\tMarks\n");
+    jTextArea1.append("--------------------------------------------------------------------------\n");
+    try {
+        java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
+        // Dynamic sorting based on which checkbox was clicked
+        String sql = "SELECT * FROM students ORDER BY " + columnName + " ASC";
+        java.sql.PreparedStatement pst = con.prepareStatement(sql);
+        java.sql.ResultSet rs = pst.executeQuery();
+
+        while (rs.next()) {
+            jTextArea1.append(rs.getInt("id") + "\t" +
+                               rs.getString("name") + "\t" +
+                               rs.getString("email") + "\t" +
+                               rs.getString("course") + "\t" +
+                               rs.getInt("marks") + "\n");
+        }
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Sort Error: " + e.getMessage());
+    }
     }
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         // TODO add your handling code here:

@@ -99,7 +99,49 @@ public class Student extends Person implements DatabaseOperations {
     }
 
     @Override
-    public void search(String keyword) {
-        System.out.println("Searching for: " + keyword);
+    public void search(String idKeyword) {
+    java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
+    // SELECT * means "Get all columns"
+    String sql = "SELECT * FROM students WHERE id = ?";
+    
+    try {
+        java.sql.PreparedStatement pst = con.prepareStatement(sql);
+        pst.setString(1, idKeyword);
+        
+        // ⭐ IMPORTANT: We use executeQuery() for SELECT statements
+        java.sql.ResultSet rs = pst.executeQuery();
+        
+        if (rs.next()) {
+            // If rs.next() is true, it means we found a student!
+            System.out.println("🔍 --- Student Found ---");
+            System.out.println("ID: " + rs.getInt("id"));
+            System.out.println("Name: " + rs.getString("name"));
+            System.out.println("Course: " + rs.getString("course"));
+            System.out.println("Marks: " + rs.getInt("marks"));
+        } else {
+            System.out.println("❌ No student found with ID: " + idKeyword);
+        }
+        
+    } catch (java.sql.SQLException e) {
+        System.out.println("❌ Search Error: " + e.getMessage());
     }
+}
+    public String toTitleCase(String input) {
+    if (input == null || input.isEmpty()) return input;
+    StringBuilder titleCase = new StringBuilder();
+    boolean nextTitleCase = true;
+
+    for (char c : input.toCharArray()) {
+        if (Character.isSpaceChar(c)) {
+            nextTitleCase = true;
+        } else if (nextTitleCase) {
+            c = Character.toUpperCase(c);
+            nextTitleCase = false;
+        } else {
+            c = Character.toLowerCase(c);
+        }
+        titleCase.append(c);
+    }
+    return titleCase.toString();
+}
 }

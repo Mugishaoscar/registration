@@ -1,5 +1,7 @@
 package com.sms.gui;
 
+import javax.swing.JOptionPane;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
@@ -50,15 +52,18 @@ public class LoginForm extends javax.swing.JFrame {
         jButton1.setBackground(new java.awt.Color(0, 0, 153));
         jButton1.setForeground(new java.awt.Color(255, 255, 255));
         jButton1.setText("Login");
+        jButton1.addActionListener(this::jButton1ActionPerformed);
 
         jCheckBox1.setText("jCheckBox1");
         jCheckBox1.addActionListener(this::jCheckBox1ActionPerformed);
 
-        jProgressBar1.setForeground(new java.awt.Color(136, 204, 153));
+        jProgressBar1.setBackground(new java.awt.Color(0, 0, 153));
+        jProgressBar1.setForeground(new java.awt.Color(0, 0, 153));
 
         jButton2.setBackground(new java.awt.Color(255, 0, 0));
         jButton2.setForeground(new java.awt.Color(250, 250, 250));
         jButton2.setText("Reset");
+        jButton2.addActionListener(this::jButton2ActionPerformed);
 
         jLabel1.setText("Username");
 
@@ -119,6 +124,79 @@ public class LoginForm extends javax.swing.JFrame {
     private void jPasswordField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPasswordField1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jPasswordField1ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    String username = jTextField1.getText();
+    String password = new String(jPasswordField1.getPassword()); 
+
+    // 1. Validation First (Check if empty before starting the bar)
+    if (username.isEmpty() || password.isEmpty() || username.equals("txtUsername")) {
+        JOptionPane.showMessageDialog(this, "Please enter both Username and Password", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+
+    // 2. Start Progress Bar Animation
+    jProgressBar1.setValue(0); // Reset to start
+    jProgressBar1.setStringPainted(true); // Show the percentage text
+
+    javax.swing.Timer timer = new javax.swing.Timer(25, new java.awt.event.ActionListener() {
+        int progress = 0;
+
+        @Override
+        public void actionPerformed(java.awt.event.ActionEvent e) {
+            progress += 1; // Speed of the bar
+            jProgressBar1.setValue(progress);
+            if (progress < 50) {
+                jProgressBar1.setForeground(java.awt.Color.RED);   // Low progress
+            } else if (progress < 90) {
+                jProgressBar1.setForeground(java.awt.Color.ORANGE); // Almost there
+            } else {
+                jProgressBar1.setForeground(java.awt.Color.GREEN);  // Ready!
+            }
+
+            if (progress >= 100) {
+                ((javax.swing.Timer)e.getSource()).stop();
+                
+                // 3. RUN DATABASE CHECK (Only after bar reaches 100%)
+                try {
+                    java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
+                    String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+                    java.sql.PreparedStatement pst = con.prepareStatement(sql);
+                    pst.setString(1, username);
+                    pst.setString(2, password);
+
+                    java.sql.ResultSet rs = pst.executeQuery();
+
+                    if (rs.next()) {
+                        // Success!
+                        JOptionPane.showMessageDialog(null, "Login Successful! Welcome " + username);
+                        dispose(); 
+                        new MainDashboard().setVisible(true); 
+                    } else {
+                        // Failure
+                        JOptionPane.showMessageDialog(null, "Invalid Username or Password", "Login Failed", JOptionPane.ERROR_MESSAGE);
+                        jPasswordField1.setText(""); 
+                        jProgressBar1.setValue(0); // Reset bar on failure
+                    }
+
+                } catch (java.sql.SQLException ex) {
+                    JOptionPane.showMessageDialog(null, "Database Error: " + ex.getMessage());
+                }
+            }
+        }
+    });
+    
+    timer.start(); // This kicks off the whole process
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+        jTextField1.setText("");
+        jPasswordField1.setText("");
+        jProgressBar1.setValue(0);
+        jCheckBox1.setSelected(false);
+        jTextField1.requestFocus();
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments

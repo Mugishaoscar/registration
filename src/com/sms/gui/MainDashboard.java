@@ -4,6 +4,8 @@
  */
 package com.sms.gui;
 
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author User
@@ -17,6 +19,8 @@ public class MainDashboard extends javax.swing.JFrame {
      */
     public MainDashboard() {
         initComponents();
+        //initComponents();
+        loadStudents();
     }
 
     /**
@@ -37,6 +41,8 @@ public class MainDashboard extends javax.swing.JFrame {
         jMenuBar4 = new javax.swing.JMenuBar();
         jMenu8 = new javax.swing.JMenu();
         jMenu9 = new javax.swing.JMenu();
+        buttonGroup1 = new javax.swing.ButtonGroup();
+        buttonGroup2 = new javax.swing.ButtonGroup();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -122,6 +128,7 @@ public class MainDashboard extends javax.swing.JFrame {
         jTextField3.addActionListener(this::jTextField3ActionPerformed);
 
         jButton1.setText("Add");
+        jButton1.addActionListener(this::jButton1ActionPerformed);
 
         jButton2.setText("Update");
         jButton2.addActionListener(this::jButton2ActionPerformed);
@@ -145,35 +152,50 @@ public class MainDashboard extends javax.swing.JFrame {
 
         jLabel8.setText("Sort by:");
 
+        buttonGroup2.add(jCheckBox1);
         jCheckBox1.setText("Id");
         jCheckBox1.addActionListener(this::jCheckBox1ActionPerformed);
 
+        buttonGroup2.add(jCheckBox2);
         jCheckBox2.setText("Name");
         jCheckBox2.addActionListener(this::jCheckBox2ActionPerformed);
 
+        buttonGroup2.add(jCheckBox3);
         jCheckBox3.setText("Grade");
         jCheckBox3.addActionListener(this::jCheckBox3ActionPerformed);
 
         jButton5.setText("Clear");
+        jButton5.addActionListener(this::jButton5ActionPerformed);
 
         jLabel7.setText("Filters:");
 
+        buttonGroup1.add(jRadioButton1);
         jRadioButton1.setText("Passed");
         jRadioButton1.addActionListener(this::jRadioButton1ActionPerformed);
 
+        buttonGroup1.add(jRadioButton2);
         jRadioButton2.setText("Failed");
+        jRadioButton2.addActionListener(this::jRadioButton2ActionPerformed);
 
+        buttonGroup1.add(jRadioButton3);
         jRadioButton3.setText("Graduated");
         jRadioButton3.addActionListener(this::jRadioButton3ActionPerformed);
 
         jLabel9.setText("Welcome to Dashboard status!");
 
+        jSlider1.setPaintLabels(true);
+        jSlider1.setPaintTicks(true);
+        jSlider1.addChangeListener(this::jSlider1StateChanged);
+
         jLabel10.setText("Slider:");
+
+        jMenuBar1.setBackground(new java.awt.Color(0, 0, 204));
 
         jMenu1.setText("File");
         jMenu1.addActionListener(this::jMenu1ActionPerformed);
 
         jMenuItem2.setText("Exit");
+        jMenuItem2.addActionListener(this::jMenuItem2ActionPerformed);
         jMenu1.add(jMenuItem2);
 
         jMenuItem3.setText("Add");
@@ -346,7 +368,7 @@ public class MainDashboard extends javax.swing.JFrame {
                             .addComponent(jSlider1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel10)))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 197, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(182, Short.MAX_VALUE))
+                .addContainerGap(174, Short.MAX_VALUE))
         );
 
         pack();
@@ -386,10 +408,44 @@ public class MainDashboard extends javax.swing.JFrame {
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
+        String idToDelete = JOptionPane.showInputDialog(this, "Enter Student ID to Delete:");
+    
+    if (idToDelete == null || idToDelete.isEmpty()) return;
+
+    int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete ID: " + idToDelete + "?", "Confirm", JOptionPane.YES_NO_OPTION);
+    
+    if (confirm == JOptionPane.YES_OPTION) {
+        try {
+            java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
+            String sql = "DELETE FROM students WHERE id = ?";
+            java.sql.PreparedStatement pst = con.prepareStatement(sql);
+            pst.setInt(1, Integer.parseInt(idToDelete));
+            
+            int rows = pst.executeUpdate();
+            if (rows > 0) {
+                JOptionPane.showMessageDialog(this, "Student Deleted!");
+                //loadStudents(); // Refresh display
+            } else {
+                JOptionPane.showMessageDialog(this, "ID not found.");
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Delete Error: " + e.getMessage());
+        }
+    }
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
+         String idStr = jTextField3.getText().trim();
+        String rawName = jTextField1.getText().trim();
+        String email = jTextField2.getText().trim();
+        String course = jComboBox1.getSelectedItem().toString();
+        String marksStr = jTextField3.getText().trim();
+                if (idStr.isEmpty() || rawName.isEmpty() || email.isEmpty() || marksStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "please enter all field of the user to delete");
+            return;
+        }
+        
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
@@ -398,27 +454,230 @@ public class MainDashboard extends javax.swing.JFrame {
 
     private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox2ActionPerformed
         // TODO add your handling code here:
+        String category = jComboBox2.getSelectedItem().toString().toLowerCase(); // id, name, etc.
+    String keyword = JOptionPane.showInputDialog(this, "Enter " + category + " to search:");
+
+    if (keyword == null || keyword.isEmpty()) return;
+
+    try {
+        java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
+        // We use "LIKE" so users can find "Osc" if they search for "Oscar"
+        String sql = "SELECT * FROM students WHERE " + category + " LIKE ?";
+        java.sql.PreparedStatement pst = con.prepareStatement(sql);
+        pst.setString(1, "%" + keyword + "%");
+        
+        java.sql.ResultSet rs = pst.executeQuery();
+
+        jTextArea1.setText("ID\tName\tEmail\tCourse\tMarks\n");
+        jTextArea1.append("--------------------------------------------------------------------------\n");
+        
+        boolean found = false;
+        while (rs.next()) {
+            found = true;
+            jTextArea1.append(rs.getInt("id") + "\t" +
+                               rs.getString("name") + "\t\t" +
+                               rs.getString("email") + "\t\t\t" +
+                               rs.getString("course") + "\t" +
+                               rs.getInt("marks") + "\n");
+        }
+        
+        if (!found) {
+            JOptionPane.showMessageDialog(this, "No student found matching: " + keyword);
+            loadStudents(); // Refresh to show all if none found
+        }
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Search Error: " + e.getMessage());
+    }
     }//GEN-LAST:event_jComboBox2ActionPerformed
 
     private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
         // TODO add your handling code here:
+        sortData("id");
     }//GEN-LAST:event_jCheckBox1ActionPerformed
 
     private void jCheckBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox2ActionPerformed
         // TODO add your handling code here:
+        sortData("name");
     }//GEN-LAST:event_jCheckBox2ActionPerformed
 
     private void jCheckBox3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox3ActionPerformed
         // TODO add your handling code here:
+        sortData("marks");
     }//GEN-LAST:event_jCheckBox3ActionPerformed
 
     private void jRadioButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton1ActionPerformed
         // TODO add your handling code here:
+        if (jRadioButton1.isSelected()) {
+        filterByStatus(">= 50");
+    }
+    }
+
+// Helper method to keep code clean
+    private void filterByStatus(String criteria) {
+    try {
+        java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
+        String sql = "SELECT * FROM students WHERE marks " + criteria;
+        // ... follow the same loop logic as loadStudents() to show filtered data ...
+    } catch (Exception e) { }
     }//GEN-LAST:event_jRadioButton1ActionPerformed
 
     private void jRadioButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton3ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jRadioButton3ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:                                     
+    try {
+        // 1. Get data from fields
+        //String idStr = jTextField3.getText().trim();
+        String rawName = jTextField1.getText().trim();
+        String email = jTextField2.getText().trim();
+        String course = jComboBox1.getSelectedItem().toString();
+        String marksStr = jTextField3.getText().trim();
+
+        // 2. Validation: Check if empty
+        if (rawName.isEmpty() || email.isEmpty() || marksStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "All fields are required!");
+            return;
+        }
+
+        // 3. String Manipulation: Title Case (Lab Requirement)
+        String formattedName = "";
+        String[] words = rawName.split("\\s+");
+        for (String word : words) {
+            if (word.length() > 0) {
+                formattedName += word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase() + " ";
+            }
+        }
+        formattedName = formattedName.trim();
+
+        // 4. Email Validation
+        if (!email.contains("@") || !email.contains(".")) {
+            JOptionPane.showMessageDialog(this, "Invalid Email Format!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 5. Numeric Validation
+        //int id = Integer.parseInt(idStr);
+        int marks = Integer.parseInt(marksStr);
+        if (marks < 0 || marks > 100) {
+            JOptionPane.showMessageDialog(this, "Marks must be between 0 and 100");
+            return;
+        }
+
+        // 6. Database Insertion
+        java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
+        String sql = "INSERT INTO students (name, email, course, marks) VALUES ( ?, ?, ?, ?)";
+        java.sql.PreparedStatement pst = con.prepareStatement(sql);
+        //pst.setInt(1, id);
+        pst.setString(1, formattedName);
+        pst.setString(2, email);
+        pst.setString(3, course);
+        pst.setInt(4, marks);
+
+        pst.executeUpdate();
+        
+        // 7. Success!
+        JOptionPane.showMessageDialog(this, "Student Added Successfully: " + formattedName);
+        
+        // Refresh the table and clear fields
+         loadStudents(); 
+        clearFields();
+
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "ID and Marks must be numbers!", "Input Error", JOptionPane.ERROR_MESSAGE);
+    } catch (java.sql.SQLException e) {
+        JOptionPane.showMessageDialog(this, "Database Error (Check if ID already exists): " + e.getMessage());
+    }
+    }
+    public void clearFields(){
+        jTextField1.setText("");
+        jTextField2.setText("");
+        jTextField3.setText("");
+        jComboBox1.setSelectedIndex(0);
+    }//GEN-LAST:event_jButton1ActionPerformed
+    private void sortData(String columnName) {
+     
+    }
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+        // TODO add your handling code here:
+        clearFields();
+        jTextArea1.setText(""); // Optional: also clear the preview area
+        //loadStudents();
+    }//GEN-LAST:event_jButton5ActionPerformed
+    public void loadStudents() {
+    // This clears the text area first so it doesn't just keep appending
+    jTextArea1.setText("ID\tName\tEmail\tCourse\tMarks\n");
+    jTextArea1.append("--------------------------------------------------------------------------\n");
+    
+    try {
+        // Get connection from your Database class
+        java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
+        String sql = "SELECT * FROM students";
+        java.sql.PreparedStatement pst = con.prepareStatement(sql);
+        java.sql.ResultSet rs = pst.executeQuery();
+
+        while (rs.next()) {
+            // Pull data from columns
+            int id = rs.getInt("id");
+            String name = rs.getString("name");
+            String email = rs.getString("email");
+            String course = rs.getString("course");
+            int marks = rs.getInt("marks");
+
+            // Append to the TextArea
+            jTextArea1.append(id + "\t" + name + "\t" + email + "\t" + course + "\t" + marks + "\n");
+        }
+    } catch (java.sql.SQLException e) {
+        JOptionPane.showMessageDialog(this, "Error Loading Data: " + e.getMessage());
+    }
+}
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+        // TODO add your handling code here:
+        int confirm = JOptionPane.showConfirmDialog(this, "Exit Application?", "Confirm", JOptionPane.YES_NO_OPTION);
+           if (confirm == JOptionPane.YES_OPTION) {
+                System.exit(0);
+        }
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void jSlider1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSlider1StateChanged
+        // TODO add your handling code here:
+        int minMarks = jSlider1.getValue();
+    // Update the label next to the slider so user sees the number
+    jLabel10.setText("Min Marks: " + minMarks); 
+    
+    // Filter the text area live!
+    jTextArea1.setText("ID\tName\tEmail\tCourse\tMarks\n");
+    jTextArea1.append("Showing students with marks >= " + minMarks + "\n");
+    jTextArea1.append("--------------------------------------------------------------------------\n");
+    
+    try {
+        java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
+        String sql = "SELECT * FROM students WHERE marks >= ?";
+        java.sql.PreparedStatement pst = con.prepareStatement(sql);
+        pst.setInt(1, minMarks);
+        java.sql.ResultSet rs = pst.executeQuery();
+
+        while (rs.next()) {
+            jTextArea1.append(rs.getInt("id") + "\t" +
+                               rs.getString("name") + "\t" +
+                               rs.getString("email") + "\t" +
+                               rs.getString("course") + "\t" +
+                               rs.getInt("marks") + "\n");
+        }
+    } catch (Exception e) {
+        // Silently handle or log
+    }
+    }//GEN-LAST:event_jSlider1StateChanged
+
+    private void jRadioButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton2ActionPerformed
+        // TODO add your handling code here:
+        // TODO add your handling code here:
+        if (jRadioButton1.isSelected()) {
+        filterByStatus(">= 50");
+    }
+    }//GEN-LAST:event_jRadioButton2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -446,6 +705,8 @@ public class MainDashboard extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;

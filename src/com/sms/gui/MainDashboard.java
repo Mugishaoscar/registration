@@ -215,6 +215,7 @@ public class MainDashboard extends javax.swing.JFrame {
         jMenu2.add(jMenuItem5);
 
         jMenuItem6.setText("Delete");
+        jMenuItem6.addActionListener(this::jMenuItem6ActionPerformed);
         jMenu2.add(jMenuItem6);
 
         jMenuBar1.add(jMenu2);
@@ -376,14 +377,187 @@ public class MainDashboard extends javax.swing.JFrame {
 
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
         // TODO add your handling code here:
+        //here
+    try {
+        // 1. Get data from fields
+        //String idStr = jTextField3.getText().trim();
+        String rawName = jTextField1.getText().trim();
+        String email = jTextField2.getText().trim();
+        String course = jComboBox1.getSelectedItem().toString();
+        String marksStr = jTextField3.getText().trim();
+
+        // 2. Validation: Check if empty
+        if (rawName.isEmpty() || email.isEmpty() || marksStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "All fields are required!");
+            return;
+        }
+
+        // 3. String Manipulation: Title Case (Lab Requirement)
+        String formattedName = "";
+        String[] words = rawName.split("\\s+");
+        for (String word : words) {
+            if (word.length() > 0) {
+                formattedName += word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase() + " ";
+            }
+        }
+        formattedName = formattedName.trim();
+
+        // 4. Email Validation
+        if (!email.contains("@") || !email.contains(".")) {
+            JOptionPane.showMessageDialog(this, "Invalid Email Format!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 5. Numeric Validation
+        //int id = Integer.parseInt(idStr);
+        int marks = Integer.parseInt(marksStr);
+        if (marks < 0 || marks > 100) {
+            JOptionPane.showMessageDialog(this, "Marks must be between 0 and 100");
+            return;
+        }
+
+        // 6. Database Insertion
+        java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
+        String sql = "INSERT INTO students (name, email, course, marks) VALUES ( ?, ?, ?, ?)";
+        java.sql.PreparedStatement pst = con.prepareStatement(sql);
+        //pst.setInt(1, id);
+        pst.setString(1, formattedName);
+        pst.setString(2, email);
+        pst.setString(3, course);
+        pst.setInt(4, marks);
+
+        pst.executeUpdate();
+        
+        // 7. Success!
+        JOptionPane.showMessageDialog(this, "Student Added Successfully: " + formattedName);
+        
+        // Refresh the table and clear fields
+         loadStudents(); 
+        clearFields();
+
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "ID and Marks must be numbers!", "Input Error", JOptionPane.ERROR_MESSAGE);
+    } catch (java.sql.SQLException e) {
+        JOptionPane.showMessageDialog(this, "Database Error (Check if ID already exists): " + e.getMessage());
+    }      
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
     private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
         // TODO add your handling code here:
+    try {
+        // 1. Get data from fields
+        //String idStr = jTextField3.getText().trim();
+        String rawName = jTextField1.getText().trim();
+        String email = jTextField2.getText().trim();
+        String course = jComboBox1.getSelectedItem().toString();
+        String marksStr = jTextField3.getText().trim();
+
+        // 2. Validation: Check if empty
+        if (rawName.isEmpty() || email.isEmpty() || marksStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "All fields are required!");
+            return;
+        }
+
+        // 3. String Manipulation: Title Case (Lab Requirement)
+        String formattedName = "";
+        String[] words = rawName.split("\\s+");
+        for (String word : words) {
+            if (word.length() > 0) {
+                formattedName += word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase() + " ";
+            }
+        }
+        formattedName = formattedName.trim();
+
+        // 4. Email Validation
+        if (!email.contains("@") || !email.contains(".")) {
+            JOptionPane.showMessageDialog(this, "Invalid Email Format!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 5. Numeric Validation
+        //int id = Integer.parseInt(idStr);
+        int marks = Integer.parseInt(marksStr);
+        if (marks < 0 || marks > 100) {
+            JOptionPane.showMessageDialog(this, "Marks must be between 0 and 100");
+            return;
+        }
+
+        // 6. Database Insertion
+        java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
+        String sql = "INSERT INTO students (name, email, course, marks) VALUES ( ?, ?, ?, ?)";
+        java.sql.PreparedStatement pst = con.prepareStatement(sql);
+        //pst.setInt(1, id);
+        pst.setString(1, formattedName);
+        pst.setString(2, email);
+        pst.setString(3, course);
+        pst.setInt(4, marks);
+
+        pst.executeUpdate();
+        
+        // 7. Success!
+        JOptionPane.showMessageDialog(this, "Student Added Successfully: " + formattedName);
+        
+        // Refresh the table and clear fields
+         loadStudents(); 
+        clearFields();
+
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "ID and Marks must be numbers!", "Input Error", JOptionPane.ERROR_MESSAGE);
+    } catch (java.sql.SQLException e) {
+        JOptionPane.showMessageDialog(this, "Database Error (Check if ID already exists): " + e.getMessage());
+    }
     }//GEN-LAST:event_jMenuItem4ActionPerformed
 
     private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
         // TODO add your handling code here:
+    String idToUpdate = JOptionPane.showInputDialog(this, "Enter the Student ID you want to update:");
+    
+    // If user clicks cancel or leaves it blank, stop
+    if (idToUpdate == null || idToUpdate.trim().isEmpty()) {
+        return;
+    }
+
+    // 2. Ask for the New Marks
+    String newMarksStr = JOptionPane.showInputDialog(this, "Enter the new marks for Student ID " + idToUpdate + ":");
+    
+    if (newMarksStr == null || newMarksStr.trim().isEmpty()) {
+        return;
+    }
+
+    try {
+        // 3. Convert inputs to numbers
+        int id = Integer.parseInt(idToUpdate.trim());
+        int marks = Integer.parseInt(newMarksStr.trim());
+
+        // 4. Validate marks range
+        if (marks < 0 || marks > 100) {
+            JOptionPane.showMessageDialog(this, "Marks must be between 0 and 100!");
+            return;
+        }
+
+        // 5. Database Update
+        java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
+        String sql = "UPDATE students SET marks = ? WHERE id = ?";
+        java.sql.PreparedStatement pst = con.prepareStatement(sql);
+        
+        pst.setInt(1, marks);
+        pst.setInt(2, id);
+
+        int rowsAffected = pst.executeUpdate();
+
+        // 6. Check if the ID actually existed
+        if (rowsAffected > 0) {
+            JOptionPane.showMessageDialog(this, "Update Successful for Student ID: " + id);
+            loadStudents(); // Refresh the list to show new marks
+        } else {
+            JOptionPane.showMessageDialog(this, "Student ID " + id + " not found in database.");
+        }
+
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "Please enter valid numbers for ID and Marks!", "Input Error", JOptionPane.ERROR_MESSAGE);
+    } catch (java.sql.SQLException e) {
+        JOptionPane.showMessageDialog(this, "Database Error: " + e.getMessage());
+    }
     }//GEN-LAST:event_jMenuItem5ActionPerformed
 
     private void jMenu1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenu1ActionPerformed
@@ -762,6 +936,34 @@ public class MainDashboard extends javax.swing.JFrame {
         filterByStatus("< 50");
     }
     }//GEN-LAST:event_jRadioButton2ActionPerformed
+
+    private void jMenuItem6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem6ActionPerformed
+        // TODO add your handling code here:
+        String idToDelete = JOptionPane.showInputDialog(this, "Enter Student ID to Delete:");
+    
+    if (idToDelete == null || idToDelete.isEmpty()) return;
+
+    int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete ID: " + idToDelete + "?", "Confirm", JOptionPane.YES_NO_OPTION);
+    
+    if (confirm == JOptionPane.YES_OPTION) {
+        try {
+            java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
+            String sql = "DELETE FROM students WHERE id = ?";
+            java.sql.PreparedStatement pst = con.prepareStatement(sql);
+            pst.setInt(1, Integer.parseInt(idToDelete));
+            
+            int rows = pst.executeUpdate();
+            if (rows > 0) {
+                JOptionPane.showMessageDialog(this, "Student Deleted!");
+                //loadStudents(); // Refresh display
+            } else {
+                JOptionPane.showMessageDialog(this, "ID not found.");
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Delete Error: " + e.getMessage());
+        }
+    }
+    }//GEN-LAST:event_jMenuItem6ActionPerformed
 
     /**
      * @param args the command line arguments

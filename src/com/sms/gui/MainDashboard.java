@@ -765,37 +765,39 @@ public class MainDashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox2ActionPerformed
-        // TODO add your handling code here:
-        String category = jComboBox2.getSelectedItem().toString().toLowerCase(); // id, name, etc.
+String category = jComboBox2.getSelectedItem().toString().toLowerCase(); 
     String keyword = JOptionPane.showInputDialog(this, "Enter " + category + " to search:");
 
     if (keyword == null || keyword.isEmpty()) return;
 
+    // 1. Get the table model and clear it
+    javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) jTable1.getModel();
+    model.setRowCount(0);
+
     try {
         java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
-        // We use "LIKE" so users can find "Osc" if they search for "Oscar"
         String sql = "SELECT * FROM students WHERE " + category + " LIKE ?";
         java.sql.PreparedStatement pst = con.prepareStatement(sql);
         pst.setString(1, "%" + keyword + "%");
         
         java.sql.ResultSet rs = pst.executeQuery();
-
-        jTextArea1.setText("ID\tName\tEmail\tCourse\tMarks\n");
-        jTextArea1.append("--------------------------------------------------------------------------\n");
         
         boolean found = false;
         while (rs.next()) {
             found = true;
-            jTextArea1.append(rs.getInt("id") + "\t" +
-                               rs.getString("name") + "\t\t" +
-                               rs.getString("email") + "\t\t\t" +
-                               rs.getString("course") + "\t" +
-                               rs.getInt("marks") + "\n");
+            // 2. Add search results to the table row by row
+            model.addRow(new Object[]{
+                rs.getInt("id"),
+                rs.getString("name"),
+                rs.getString("email"),
+                rs.getString("course"),
+                rs.getInt("marks")
+            });
         }
         
         if (!found) {
             JOptionPane.showMessageDialog(this, "No student found matching: " + keyword);
-            loadStudents(); // Refresh to show all if none found
+            loadStudents(); // Refresh to show all
         }
 
     } catch (Exception e) {

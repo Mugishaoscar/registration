@@ -825,34 +825,37 @@ public class MainDashboard extends javax.swing.JFrame {
 // Helper method to keep code clean
     private void filterByStatus(String criteria) {
 // 1. Clear the old text and add a Header
-    jTextArea1.setText("ID\tName\tEmail\tCourse\tMarks\n");
-    jTextArea1.append("--------------------------------------------------------------------------\n");
+// 1. Get the table model and clear existing rows
+javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) jTable1.getModel();
+model.setRowCount(0);
 
-    try {
-        java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
-        String sql = "SELECT * FROM students WHERE marks " + criteria;
-        java.sql.PreparedStatement pst = con.prepareStatement(sql);
-        java.sql.ResultSet rs = pst.executeQuery();
+try {
+    java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
+    String sql = "SELECT * FROM students WHERE marks " + criteria;
+    java.sql.PreparedStatement pst = con.prepareStatement(sql);
+    java.sql.ResultSet rs = pst.executeQuery();
 
-        boolean found = false;
-        // 2. Loop through the filtered results
-        while (rs.next()) {
-            found = true;
-            jTextArea1.append(rs.getInt("id") + "\t" +
-                               rs.getString("name") + "\t" +
-                               rs.getString("email") + "\t" +
-                               rs.getString("course") + "\t" +
-                               rs.getInt("marks") + "\n");
-        }
-        
-        if (!found) {
-            jTextArea1.append("\nNo students found matching this filter.");
-        }
-
-    } catch (Exception e) {
-        // If 'this' gives an error here, use 'null'
-        JOptionPane.showMessageDialog(null, "Filter Error: " + e.getMessage());
+    boolean found = false;
+    // 2. Loop through the filtered results and add them to the table
+    while (rs.next()) {
+        found = true;
+        model.addRow(new Object[]{
+            rs.getInt("id"),
+            rs.getString("name"),
+            rs.getString("email"),
+            rs.getString("course"),
+            rs.getInt("marks")
+        });
     }
+    
+    // 3. Handle the "no results" case
+    if (!found) {
+        JOptionPane.showMessageDialog(null, "No students found matching this filter.");
+    }
+
+} catch (Exception e) {
+    JOptionPane.showMessageDialog(null, "Filter Error: " + e.getMessage());
+}
     }//GEN-LAST:event_jRadioButton1ActionPerformed
 
     private void jRadioButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton3ActionPerformed
@@ -934,21 +937,31 @@ public class MainDashboard extends javax.swing.JFrame {
         jComboBox1.setSelectedIndex(0);
     }//GEN-LAST:event_jButton1ActionPerformed
     private void sortData(String columnName) {
-    jTextArea1.setText("ID\tName\tEmail\tCourse\tMarks\n");
-    jTextArea1.append("--------------------------------------------------------------------------\n");
+// 1. Get the table model
+    javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) jTable1.getModel();
+    
+    // 2. Clear current rows
+    model.setRowCount(0);
+    
     try {
         java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
-        // Dynamic sorting based on which checkbox was clicked
+        
+        // 3. Dynamic sorting
+        // Important: SQL queries don't allow column names as parameters (?), 
+        // so we inject the string directly. Ensure 'columnName' is safe!
         String sql = "SELECT * FROM students ORDER BY " + columnName + " ASC";
         java.sql.PreparedStatement pst = con.prepareStatement(sql);
         java.sql.ResultSet rs = pst.executeQuery();
 
         while (rs.next()) {
-            jTextArea1.append(rs.getInt("id") + "\t" +
-                               rs.getString("name") + "\t" +
-                               rs.getString("email") + "\t" +
-                               rs.getString("course") + "\t" +
-                               rs.getInt("marks") + "\n");
+            // 4. Add the rows to the model
+            model.addRow(new Object[]{
+                rs.getInt("id"),
+                rs.getString("name"),
+                rs.getString("email"),
+                rs.getString("course"),
+                rs.getInt("marks")
+            });
         }
     } catch (Exception e) {
         JOptionPane.showMessageDialog(this, "Sort Error: " + e.getMessage());
@@ -961,9 +974,12 @@ public class MainDashboard extends javax.swing.JFrame {
         //loadStudents();
     }//GEN-LAST:event_jButton5ActionPerformed
     public void loadStudents() {
-    // This clears the text area first so it doesn't just keep appending
-    jTextArea1.setText("ID\tName\tEmail\tCourse\tMarks\n");
-    jTextArea1.append("--------------------------------------------------------------------------\n");
+// 1. Get the DefaultTableModel from your JTable
+    // This is the object that actually manages the rows and columns
+    javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) jTable1.getModel();
+    
+    // 2. Clear the table before loading new data (so you don't double the rows)
+    model.setRowCount(0);
     
     try {
         // Get connection from your Database class
@@ -980,8 +996,11 @@ public class MainDashboard extends javax.swing.JFrame {
             String course = rs.getString("course");
             int marks = rs.getInt("marks");
 
-            // Append to the TextArea
-            jTextArea1.append(id + "\t" + name + "\t" + email + "\t" + course + "\t" + marks + "\n");
+            // 3. Create an "Object Array" representing one row in the table
+            Object[] rowData = {id, name, email, course, marks};
+            
+            // 4. Add the row to the table model
+            model.addRow(rowData);
         }
     } catch (java.sql.SQLException e) {
         JOptionPane.showMessageDialog(this, "Error Loading Data: " + e.getMessage());
@@ -997,14 +1016,16 @@ public class MainDashboard extends javax.swing.JFrame {
 
     private void jSlider1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSlider1StateChanged
         // TODO add your handling code here:
-        int minMarks = jSlider1.getValue();
-    // Update the label next to the slider so user sees the number
+int minMarks = jSlider1.getValue();
+    
+    // Update the label so the user sees the threshold
     jLabel10.setText("Min Marks: " + minMarks); 
     
-    // Filter the text area live!
-    jTextArea1.setText("ID\tName\tEmail\tCourse\tMarks\n");
-    jTextArea1.append("Showing students with marks >= " + minMarks + "\n");
-    jTextArea1.append("--------------------------------------------------------------------------\n");
+    // 1. Get the table model
+    javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) jTable1.getModel();
+    
+    // 2. Clear the table
+    model.setRowCount(0);
     
     try {
         java.sql.Connection con = com.sms.db.DatabaseConnection.getConnection();
@@ -1014,14 +1035,17 @@ public class MainDashboard extends javax.swing.JFrame {
         java.sql.ResultSet rs = pst.executeQuery();
 
         while (rs.next()) {
-            jTextArea1.append(rs.getInt("id") + "\t" +
-                               rs.getString("name") + "\t" +
-                               rs.getString("email") + "\t" +
-                               rs.getString("course") + "\t" +
-                               rs.getInt("marks") + "\n");
+            // 3. Add rows directly to the table
+            model.addRow(new Object[]{
+                rs.getInt("id"),
+                rs.getString("name"),
+                rs.getString("email"),
+                rs.getString("course"),
+                rs.getInt("marks")
+            });
         }
     } catch (Exception e) {
-        // Silently handle or log
+        JOptionPane.showMessageDialog(this, "Filter Error: " + e.getMessage());
     }
     }//GEN-LAST:event_jSlider1StateChanged
 

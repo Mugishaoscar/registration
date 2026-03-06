@@ -21,7 +21,25 @@ public class MainDashboard extends javax.swing.JFrame {
         initComponents();
         //initComponents();
         loadStudents();
+        loadLastUpdate(); 
     }
+    private void loadLastUpdate() {
+    try {
+        java.io.File file = new java.io.File("last_update.txt");
+        if (file.exists()) {
+            java.util.Scanner reader = new java.util.Scanner(file);
+            if (reader.hasNextLine()) {
+                String savedMessage = reader.nextLine();
+                jLabel9.setText(savedMessage);
+            }
+            reader.close();
+        } else {
+            jLabel9.setText("No recent updates found.");
+        }
+    } catch (Exception e) {
+        jLabel9.setText("Welcome back!");
+    }
+}
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -242,16 +260,17 @@ public class MainDashboard extends javax.swing.JFrame {
                                     .addGroup(jPanel3Layout.createSequentialGroup()
                                         .addGap(0, 0, Short.MAX_VALUE)
                                         .addComponent(jButton4))
-                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel3Layout.createSequentialGroup()
+                                    .addGroup(jPanel3Layout.createSequentialGroup()
                                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jLabel8)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(jCheckBox1)
-                                        .addGap(16, 16, 16))
-                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel3Layout.createSequentialGroup()
-                                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(29, 29, 29)))
+                                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                            .addGroup(jPanel3Layout.createSequentialGroup()
+                                                .addComponent(jLabel8)
+                                                .addGap(18, 18, 18)
+                                                .addComponent(jCheckBox1)
+                                                .addGap(16, 16, 16))
+                                            .addGroup(jPanel3Layout.createSequentialGroup()
+                                                .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(29, 29, 29)))))
                                 .addGap(61, 61, 61)
                                 .addComponent(jButton7)
                                 .addGap(60, 60, 60)))
@@ -315,7 +334,7 @@ public class MainDashboard extends javax.swing.JFrame {
         );
 
         jPanel5.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        jPanel5.setLayout(new java.awt.GridLayout());
+        jPanel5.setLayout(new java.awt.GridLayout(1, 0));
 
         jTextArea1.setColumns(20);
         jTextArea1.setRows(5);
@@ -339,7 +358,7 @@ public class MainDashboard extends javax.swing.JFrame {
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(41, 41, 41)
+                .addGap(19, 19, 19)
                 .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 201, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(24, Short.MAX_VALUE))
         );
@@ -398,6 +417,11 @@ public class MainDashboard extends javax.swing.JFrame {
         jMenu10.setText("help");
 
         jMenuItem1.setText("About");
+        jMenuItem1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jMenuItem1MouseClicked(evt);
+            }
+        });
         jMenu10.add(jMenuItem1);
 
         jMenuBar1.add(jMenu10);
@@ -924,7 +948,14 @@ try {
         
         // 7. Success!
         JOptionPane.showMessageDialog(this, "Student Added Successfully: " + formattedName);
-        
+        this.jLabel9.setText("the last update is made on "+rawName);
+        try {
+             java.io.FileWriter writer = new java.io.FileWriter("last_update.txt");
+             writer.write("The last update was made on: " + rawName);
+            writer.close();
+        } catch (java.io.IOException e) {
+              System.out.println("Error saving update log: " + e.getMessage());
+        }
         // Refresh the table and clear fields
          loadStudents(); 
         clearFields();
@@ -975,7 +1006,7 @@ try {
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         // TODO add your handling code here:
         clearFields();
-        jTextArea1.setText(""); // Optional: also clear the preview area
+        //jTable1.setText(""); // Optional: also clear the preview area
         //loadStudents();
     }//GEN-LAST:event_jButton5ActionPerformed
     public void loadStudents() {
@@ -1101,6 +1132,12 @@ int minMarks = jSlider1.getValue();
     private void jMenuBar1PropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_jMenuBar1PropertyChange
         // TODO add your handling code here:
     }//GEN-LAST:event_jMenuBar1PropertyChange
+
+    private void jMenuItem1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jMenuItem1MouseClicked
+        // TODO add your handling code here:
+//        AboutPage about=new AboutPage();
+//        about.setVisible(true);
+    }//GEN-LAST:event_jMenuItem1MouseClicked
 
     /**
      * @param args the command line arguments

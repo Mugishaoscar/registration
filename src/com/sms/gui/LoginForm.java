@@ -210,7 +210,8 @@ public class LoginForm extends javax.swing.JFrame {
     }//GEN-LAST:event_jPasswordField1ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-    String username = jTextField1.getText();
+
+        String username = jTextField1.getText();
     String password = new String(jPasswordField1.getPassword()); 
 
     // 1. Validation First (Check if empty before starting the bar)

@@ -359,7 +359,7 @@ public class MainDashboard extends javax.swing.JFrame {
                 {null, null, null, null, null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4", "Title 5"
+                "Id", "Names", "Emails", "Course", "Marks"
             }
         ));
         jScrollPane3.setViewportView(jTable1);

@@ -1018,6 +1018,10 @@ try {
         // TODO add your handling code here:
         int confirm = JOptionPane.showConfirmDialog(this, "Exit Application?", "Confirm", JOptionPane.YES_NO_OPTION);
            if (confirm == JOptionPane.YES_OPTION) {
+               java.io.File file = new java.io.File("remember.txt");
+            if (file.exists()) {
+                 file.delete(); // This stops the auto-login for next time
+            }
                new LoginForm().setVisible(true);
                this.dispose();
                //System.exit(0);

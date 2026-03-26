@@ -28,11 +28,17 @@ public class LoginForm extends javax.swing.JFrame {
         if (file.exists()) {
             java.util.Scanner reader = new java.util.Scanner(file);
             if (reader.hasNextLine()) {
-                jTextField1.setText(reader.nextLine()); // Sets Email/Username
-                jPasswordField1.setText(reader.nextLine()); // Sets Password
+                // Fill the text fields
+                jTextField1.setText(reader.nextLine()); 
+                jPasswordField1.setText(reader.nextLine()); 
                 jCheckBox1.setSelected(true);
+                
+                reader.close(); // Close the file first!
+
+                // --- THE MAGIC LINE ---
+                // This tells Java to run the code in Step 1 automatically
+                jButton1ActionPerformed(null); 
             }
-            reader.close();
         }
     } catch (Exception e) {
         System.out.println("Could not load details");
